@@ -1,0 +1,158 @@
+﻿@model IEnumerable<MunicipalReporter.Models.LocalEvent>
+
+<h2 class="mb-4 text-center">📅 Local Events and Announcements</h2>
+
+<!-- Top Buttons -->
+<div class="mb-4 d-flex gap-2 flex-wrap justify-content-center">
+    <a href="@Url.Action("AddAnnouncement", "LocalEvents")" class="btn btn-warning">
+        + Add Announcement
+    </a>
+    <a href="@Url.Action("AddEvent", "LocalEvents")" class="btn btn-success">
+        + Add Event
+    </a>
+</div>
+
+<!-- TempData Success Message -->
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-@(ViewBag.MessageType ?? "info") mb-3 text-center">
+        @ViewBag.Message
+    </div>
+}
+
+<!-- Search & Filter Form -->
+<form method="get" class="row g-3 mb-4 align-items-end bg-light p-3 rounded shadow-sm">
+    <div class="col-md-3">
+        <label class="form-label fw-bold">Category</label>
+        <select name="category" class="form-select">
+            <option value="">-- All Categories --</option>
+            @foreach (var cat in ViewBag.Categories)
+            {
+                if (cat == (string)Context.Request.Query["category"])
+                {
+                    <option value="@cat" selected>@cat</option>
+                }
+                else
+                {
+                    <option value="@cat">@cat</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-bold">From</label>
+        <input type="date" name="startDate" class="form-control"
+               value="@(Context.Request.Query["startDate"].ToString())" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-bold">To</label>
+        <input type="date" name="endDate" class="form-control"
+               value="@(Context.Request.Query["endDate"].ToString())" />
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-info flex-fill">Search</button>
+        <a href="@Url.Action("Index", "LocalEvents")" class="btn btn-secondary flex-fill">Clear Filters</a>
+    </div>
+</form>
+
+<!-- Recommended Category Alert -->
+@if (!string.IsNullOrEmpty(ViewBag.RecommendedCategory))
+{
+    <div class="alert alert-info mb-4 text-center">
+        💡 You often search for <strong>@ViewBag.RecommendedCategory</strong> events.
+        Check out these recommendations below!
+    </div>
+}
+
+<!-- Announcements Section -->
+@{
+    var announcements = (IEnumerable<MunicipalReporter.Models.LocalEvent>)ViewBag.Announcements;
+}
+@if (announcements != null && announcements.Any())
+{
+    <h3 class="mb-3 text-warning text-center">📢 Announcements</h3>
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        @foreach (var evt in announcements)
+        {
+            <div class="col">
+                <div class="card h-100 border-warning shadow-sm rounded hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-warning text-dark mb-2">@evt.Category</span>
+                        <h5 class="card-title fw-bold">@evt.Name</h5>
+                        <p class="card-text flex-grow-1">@evt.Description</p>
+                        <div class="text-end mt-2">
+                            <small class="text-muted">@evt.Date.ToString("yyyy/MM/dd")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Events Section -->
+@if (Model != null && Model.Any())
+{
+    <h3 class="mb-3 text-center">🎉 Upcoming Events</h3>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var evt in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-secondary mb-2">@evt.Category</span>
+                        <h5 class="card-title fw-bold">@evt.Name</h5>
+                        <p class="card-text flex-grow-1">@evt.Description</p>
+                        <div class="text-end mt-2">
+                            <small class="text-muted">@evt.Date.ToString("yyyy/MM/dd")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Recommended Events Section -->
+@{
+    var recommended = (IEnumerable<MunicipalReporter.Models.LocalEvent>)ViewBag.Recommended;
+}
+@if (recommended != null && recommended.Any())
+{
+    <h3 class="mt-5 mb-3 text-center text-info">✨ Recommended for You: @ViewBag.RecommendedCategory</h3>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var evt in recommended)
+        {
+            <div class="col">
+                <div class="card h-100 border-info shadow-sm rounded hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-info text-dark mb-2">@evt.Category</span>
+                        <h5 class="card-title fw-bold">@evt.Name</h5>
+                        <p class="card-text flex-grow-1">@evt.Description</p>
+                        <div class="text-end mt-2">
+                            <small class="text-muted">@evt.Date.ToString("yyyy/MM/dd")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Styling -->
+<style>
+    .hover-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+</style>
+
+@* Reference *@
+@* Start Bootstrap, 2025. Bootstrap Templates & Themes. [online] Available at: https://startbootstrap.com/themes [Accessed 13 October 2025] *@

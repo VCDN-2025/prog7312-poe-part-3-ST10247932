@@ -1,0 +1,113 @@
+﻿@model IEnumerable<MunicipalReporter.Models.ServiceRequest>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpCtx
+
+@{
+    ViewData["Title"] = "Service Request Status";
+    var topPriority = ViewBag.TopPriority as List<MunicipalReporter.Models.ServiceRequest>;
+    var userEmail = HttpCtx.HttpContext?.Session.GetString("Email") ?? HttpCtx.HttpContext?.Session.GetString("Username");
+    bool isAdmin = !string.IsNullOrEmpty(userEmail) && userEmail.Equals("admin@gmail.com", StringComparison.OrdinalIgnoreCase);
+}
+
+<h1>Service Request Status</h1>
+
+<!-- Track by ID form at the top -->
+<div class="mb-4 d-flex justify-content-end">
+    <form asp-action="TrackById" method="post" class="d-flex" style="max-width:400px;">
+        <input type="text" name="id" class="form-control me-2" placeholder="Enter Request ID" />
+        <button type="submit" class="btn btn-primary">Track</button>
+    </form>
+</div>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mt-2">
+        @TempData["Error"]
+    </div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mt-2">
+        @TempData["Success"]
+    </div>
+}
+
+<!-- Main Status Table -->
+<div class="table-responsive">
+    <table class="table table-hover table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Request ID</th>
+                <th>Title / Description</th>
+                <th>Suburb</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date Reported</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var req in Model)
+            {
+                <tr>
+                    <td>@req.RequestId</td>
+                    <td>@req.Title</td>
+                    <td>@req.Suburb ?? "N/A"</td>
+                    <td><span class="badge bg-danger">@req.Priority</span></td>
+                    <td>
+                        @if (isAdmin)
+                        {
+                            <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@req.RequestId" />
+                                <select name="status" class="form-select form-select-sm me-1">
+                                    @foreach (var s in Enum.GetValues(typeof(MunicipalReporter.Models.RequestStatus)).Cast<MunicipalReporter.Models.RequestStatus>())
+                                    {
+                                        string selected = s == req.Status ? "selected" : "";
+                                        @:<option value="@s" @selected>@s</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">Update</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge @(req.Status == MunicipalReporter.Models.RequestStatus.Submitted ? "bg-secondary" :
+                                               req.Status == MunicipalReporter.Models.RequestStatus.InProgress ? "bg-primary" :
+                                               req.Status == MunicipalReporter.Models.RequestStatus.Completed ? "bg-success" :
+                                               req.Status == MunicipalReporter.Models.RequestStatus.OnHold ? "bg-warning" :
+                                               "bg-dark")">@req.Status</span>
+                        }
+                    </td>
+                    <td>@req.CreatedAt.ToString("g")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@req.RequestId">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Top Priority Requests at the bottom -->
+<div class="mt-5">
+    <h3>Top Priority Requests</h3>
+    @if (topPriority != null && topPriority.Any())
+    {
+        <ul class="list-group">
+            @foreach (var req in topPriority)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@req.Title (@req.Suburb ?? "N/A")</span>
+                    <span class="badge bg-danger">@req.Priority</span>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>No top priority requests.</p>
+    }
+</div>
+@* Reference *@
+@* Start Bootstrap, 2025. Bootstrap Templates & Themes. [online] Available at: https://startbootstrap.com/themes [Accessed 13 October 2025] *@

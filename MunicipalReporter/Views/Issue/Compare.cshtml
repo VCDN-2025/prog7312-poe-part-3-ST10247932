@@ -1,0 +1,89 @@
+﻿@model MunicipalReporter.Models.IssueComparisonViewModel
+
+@{
+    ViewData["Title"] = "Compare Issues";
+
+    string FormatBytes(long bytes)
+    {
+        if (bytes < 1024) return bytes + " B";
+        double kb = bytes / 1024.0;
+        if (kb < 1024) return kb.ToString("F2") + " KB";
+        double mb = kb / 1024.0;
+        if (mb < 1024) return mb.ToString("F2") + " MB";
+        double gb = mb / 1024.0;
+        return gb.ToString("F2") + " GB";
+    }
+}
+
+<h2 class="mb-4">Compare Your Reports</h2>
+
+<div class="mb-4">
+    <div class="alert alert-info">
+        <strong>Full report size:</strong> @FormatBytes(Model.FullSizeBytes) <br />
+        <strong>Compressed report size:</strong> @FormatBytes(Model.CompressedSizeBytes)
+    </div>
+</div>
+
+<div class="row">
+    <!-- Full Issues -->
+    <div class="col-md-6">
+        <h4>All Issues</h4>
+        @foreach (var issue in Model.FullIssues)
+        {
+            var issueSize = Model.FullIssueSizes.ContainsKey(issue.Id) ? Model.FullIssueSizes[issue.Id] : 0;
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <span class="badge bg-primary">@issue.Category</span>
+                        <small class="text-muted">@issue.DateReported.ToString("yyyy/MM/dd HH:mm")</small>
+                        <span class="float-end text-muted">@FormatBytes(issueSize)</span>
+                    </h5>
+                    <p class="card-text">@issue.Description</p>
+                    <p class="mb-1"><strong>Location:</strong> @issue.Location</p>
+                    <p class="mb-0">
+                        <strong>Attachments:</strong>
+                        @if (issue.Attachments != null && issue.Attachments.Any())
+                        {
+                            @foreach (var att in issue.Attachments)
+                            {
+                                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", att);
+                                long size = File.Exists(path) ? new FileInfo(path).Length : 0;
+                                <a class="btn btn-sm btn-outline-secondary me-1 mb-1" href="~/@att" target="_blank"
+                                   title="@FormatBytes(size)">
+                                    <i class="bi bi-paperclip"></i> @System.IO.Path.GetFileName(att)
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <span>No attachments</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Compressed Issues -->
+    <div class="col-md-6">
+        <h4>Compressed Issues</h4>
+        @foreach (var issue in Model.CompressedIssues)
+        {
+            var issueSize = Model.CompressedIssueSizes.ContainsKey(issue.Id) ? Model.CompressedIssueSizes[issue.Id] : 0;
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <span class="badge bg-success">@issue.Category</span>
+                        <span class="float-end text-muted">@FormatBytes(issueSize)</span>
+                    </h5>
+                    <p class="card-text">@issue.Description</p>
+                    <p class="mb-0"><em>Attachments not included in compressed report.</em></p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<a class="btn btn-secondary mt-3" href="@Url.Action("Report", "Issue")">Back to Report</a>
+@*Refference*@
+@* Start Bootstrap, 2025.Bootstrap Templates & Themes.[online] Available at: https://startbootstrap.com/themes#google_vignette [Accessed 1 September 2025] *@

@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    var username = Context.Session.GetString("Username"); // get current user
+}
+
+<div class="container mt-5">
+    <!-- Welcome Card -->
+    <div class="card card-report p-4 mb-5">
+        <div class="text-center">
+            <h1 class="mb-3" style="color:#007A33;">Welcome to Municipal Reporter</h1>
+            <p class="lead mb-4" style="color:#0b5ed7;">
+                Report municipal issues in your area — lightweight, low-data, and mobile friendly.
+            </p>
+        </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="row">
+        <!-- Transparent Reporting -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm p-3 h-100 d-flex flex-column">
+                <h5 class="text-success">Transparent Reporting</h5>
+                <p>Track municipal service issues in real-time with accountability at every step.</p>
+                <a class="btn btn-success btn-lg mt-auto w-100" href="/Issue/Report">
+                    Report an Issue
+                </a>
+            </div>
+        </div>
+
+        <!-- Inclusive Access -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm p-3 h-100 d-flex flex-column">
+                <h5 class="text-primary">Inclusive Access</h5>
+                <p>Reach municipal services even with basic mobile phones and low bandwidth.</p>
+                <a class="btn btn-primary btn-lg mt-auto w-100" asp-controller="Home" asp-action="LearnMore">
+                    Learn More
+                </a>
+            </div>
+        </div>
+
+        <!-- Community Engagement -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm p-3 h-100 d-flex flex-column">
+                <h5 class="text-warning">Community Engagement</h5>
+                <p>Empowering citizens to participate actively in service delivery and governance.</p>
+                <a class="btn btn-success btn-lg mt-auto w-100" asp-controller="Community" asp-action="Chat">
+                    Go to Community Chat
+                </a>
+            </div>
+        </div>
+
+        <!-- Local Events & Announcements -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm p-3 h-100 d-flex flex-column">
+                <h5 class="text-info">Local Events & Announcements</h5>
+                <p>Stay updated with upcoming municipal events and community announcements in your area.</p>
+                <a class="btn btn-success btn-lg mt-auto w-100" asp-controller="LocalEvents" asp-action="Index">
+                    View Events
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Reference *@
+@* Start Bootstrap, 2025. Bootstrap Templates & Themes. [online] Available at: https://startbootstrap.com/themes#google_vignette [Accessed 1 September 2025] *@

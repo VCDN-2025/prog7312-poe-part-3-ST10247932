@@ -1,0 +1,167 @@
+﻿@model MunicipalReporter.Models.Issue
+@{
+    Layout = "_Layout";
+}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="mb-4 text-primary">Report an Issue</h2>
+
+        @* Success message *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @* Validation summary for file errors or other errors *@
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-action="Report" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Area / Suburb</label>
+                <div class="input-group">
+                    <input asp-for="Location" class="form-control"
+                           placeholder="e.g., Woodview, Phoenix" id="LocationInput" />
+                    <button type="button" class="btn btn-outline-primary" onclick="getLocation()">
+                        Use My Location
+                    </button>
+                </div>
+                <small class="text-muted">Enter the area/suburb manually or click "Use My Location".</small>
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Category</label>
+                <select name="Category" class="form-select">
+                    <option value="">Select a category...</option>
+                    @foreach (var cat in (string[])ViewBag.Categories)
+                    {
+                        if (Model?.Category == cat)
+                        {
+                            <option value="@cat" selected>@cat</option>
+                        }
+                        else
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label fw-bold"></label>
+                <textarea asp-for="Description" class="form-control" rows="6" placeholder="Provide details about the issue"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Attach Images / Documents</label>
+                <input type="file" name="files" multiple class="form-control" id="fileInput" />
+                <small class="text-muted">Attachments saved only if Low Data Mode is off. Max size per file: 3 MB.</small>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="lowDataMode" value="true" class="form-check-input" id="lowDataMode" />
+                <label class="form-check-label" for="lowDataMode">Low Data Mode (compact report, skip attachments)</label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Progress</label>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width:0%">0%</div>
+                </div>
+                <p class="encourage mt-2 text-primary fw-semibold" id="encourageLabel">Start by entering a location.</p>
+            </div>
+
+            <button type="submit" class="btn btn-success me-2">Submit</button>
+            <a class="btn btn-secondary" href="/">Back to Main Menu</a>
+            <a class="btn btn-primary" href="@Url.Action("Compare", "Issue")">View My Reports</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async function (position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        try {
+                            const response = await fetch(
+                                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+                            );
+                            const data = await response.json();
+
+                            if (data && data.display_name) {
+                                document.getElementById("LocationInput").value = data.display_name;
+                            } else {
+                                document.getElementById("LocationInput").value = lat + "," + lon;
+                            }
+                        } catch {
+                            document.getElementById("LocationInput").value = lat + "," + lon;
+                        }
+                    },
+                    function (error) {
+                        alert("Unable to retrieve location: " + error.message);
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        (function () {
+            // Progress bar logic
+            var loc = document.querySelector('input[name="Location"]');
+            var desc = document.querySelector('textarea[name="Description"]');
+            var cat = document.querySelector('select[name="Category"]');
+            var pb = document.getElementById('progressBar');
+            var label = document.getElementById('encourageLabel');
+
+            function updateProgress() {
+                var score = 0;
+                if (loc && loc.value.trim().length > 0) score += 35;
+                if (cat && cat.value.trim().length > 0) score += 25;
+                if (desc && desc.value.trim().length > 0) score += 40;
+                if (score > 100) score = 100;
+                pb.style.width = score + '%';
+                pb.innerText = score + '%';
+                if (score == 0) label.innerText = 'Start by entering a location.';
+                else if (score <= 35) label.innerText = 'Nice start! Choose a category next.';
+                else if (score <= 60) label.innerText = 'Looking good — add a short description.';
+                else if (score < 100) label.innerText = 'Almost there — attach files if needed.';
+                else label.innerText = 'Great — ready to submit!';
+            }
+
+            ['input', 'change'].forEach(e => {
+                if (loc) loc.addEventListener(e, updateProgress);
+                if (desc) desc.addEventListener(e, updateProgress);
+                if (cat) cat.addEventListener(e, updateProgress);
+            });
+            updateProgress();
+
+            // Low Data Mode logic
+            var lowDataCheckbox = document.getElementById('lowDataMode');
+            var fileInput = document.getElementById('fileInput');
+
+            function toggleFileInput() {
+                fileInput.disabled = lowDataCheckbox.checked;
+            }
+
+            toggleFileInput();
+            lowDataCheckbox.addEventListener('change', toggleFileInput);
+        })();
+    </script>
+}

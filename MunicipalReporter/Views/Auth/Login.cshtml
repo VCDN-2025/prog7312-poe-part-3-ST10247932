@@ -1,0 +1,48 @@
+﻿@model MunicipalReporter.Models.User
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm p-4">
+                <div class="text-center mb-4">
+                    <h2 class="text-primary">Login</h2>
+                    <p class="text-muted">Access your account to participate in the community and report issues.</p>
+                </div>
+
+                @* Display error or success messages *@
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Message"]</div>
+                }
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="Username" class="form-label">Username</label>
+                        <input type="text" name="Username" id="Username" class="form-control" placeholder="Enter your username" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Password" class="form-label">Password</label>
+                        <input type="password" name="Password" id="Password" class="form-control" placeholder="Enter your password" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p class="mb-0">
+                        Don't have an account?
+                        <a asp-action="Register" class="text-success">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*Refference*@
+@* Start Bootstrap, 2025.Bootstrap Templates & Themes.[online] Available at: https://startbootstrap.com/themes#google_vignette [Accessed 1 September 2025] *@

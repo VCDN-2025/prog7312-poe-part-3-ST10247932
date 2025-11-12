@@ -1,0 +1,135 @@
+﻿@using MunicipalReporter.Models
+@using Microsoft.AspNetCore.Html
+@using System.IO
+@using System.Net
+
+@{
+    var username = ViewBag.Username;
+    var messages = ViewBag.Messages as List<ChatMessage>;
+    ViewData["Title"] = "Community Chat";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="mb-4 text-primary">Community Chat</h2>
+
+        <div class="card card-report">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Welcome, <b>@username</b>!</h5>
+            </div>
+
+            <div id="chatContainer" class="card-body" style="height: 400px; overflow-y: auto; background-color: #f7f7f7; padding: 15px;">
+                @if (messages != null && messages.Count > 0)
+                {
+                    @RenderMessages(messages, username)
+                }
+                else
+                {
+                    <p class="text-muted text-center mt-5">No messages yet. Be the first to start the conversation!</p>
+                }
+            </div>
+
+            <div class="card-footer">
+                <form method="post" class="d-flex" id="chatForm">
+                    <input type="hidden" id="replyTo" name="replyTo" value="" />
+                    <input type="text" name="message" id="messageInput" class="form-control me-2" placeholder="Type your message..." required />
+                    <button type="submit" class="btn btn-success">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var chatContainer = document.getElementById("chatContainer");
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Scroll to bottom on load
+        scrollToBottom();
+
+        // Set up reply buttons
+        document.querySelectorAll(".reply-btn").forEach(btn => {
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                const replyToId = this.dataset.replyto;
+                const replyToText = this.dataset.replytext;
+
+                const input = document.getElementById("messageInput");
+                const replyToField = document.getElementById("replyTo");
+
+                replyToField.value = replyToId;
+
+                // Determine if the reply is to a System message
+                const isSystem = this.closest('div.p-2').style.backgroundColor === "rgb(255, 193, 7)"; // matches #ffc107
+                if (isSystem) {
+                    input.placeholder = "Replying to Issue: " + replyToText.substring(0, 50) + (replyToText.length > 50 ? "..." : "");
+                } else {
+                    input.placeholder = "Replying to: " + replyToText.substring(0, 50) + (replyToText.length > 50 ? "..." : "");
+                }
+
+                input.value = ""; // clear input
+                input.focus();
+                scrollToBottom();
+            });
+        });
+
+        // After sending a message, scroll down
+        document.getElementById("chatForm").addEventListener("submit", function () {
+            setTimeout(scrollToBottom, 50);
+        });
+    </script>
+}
+
+
+@functions {
+    private IHtmlContent RenderMessages(List<ChatMessage> messages, string currentUser)
+    {
+        var sorted = messages.OrderBy(m => m.Timestamp).ToList();
+        var html = new HtmlContentBuilder();
+
+        foreach (var msg in sorted)
+        {
+            bool isMine = msg.Username == currentUser;
+            bool isSystem = msg.Username == "System";
+
+            string alignClass = isMine ? "justify-content-end" : "justify-content-start";
+            string bgColor = isSystem ? "#ffc107" : (isMine ? "#d1e7dd" : "#e9ecef");
+            string marginStyle = isMine ? "margin-left: auto;" : "";
+
+            var quotedHtml = new HtmlContentBuilder();
+            if (msg.ReplyTo.HasValue)
+            {
+                var repliedMsg = messages.FirstOrDefault(m => m.Id == msg.ReplyTo.Value);
+                if (repliedMsg != null)
+                {
+                    string encodedMessage = WebUtility.HtmlEncode(repliedMsg.Message).Replace("\n", "<br/>");
+                    quotedHtml.AppendHtml("<div style='font-size:0.85rem; color:#555; border-left:3px solid #ccc; padding-left:8px; margin:5px 0;'>");
+                    quotedHtml.AppendHtml("<strong>" + WebUtility.HtmlEncode(repliedMsg.Username) + ":</strong> " + encodedMessage);
+                    quotedHtml.AppendHtml("</div>");
+                }
+            }
+
+            string currentMsg = WebUtility.HtmlEncode(msg.Message).Replace("\n", "<br/>");
+
+            html.AppendHtml("<div class='d-flex mb-2 " + alignClass + "' style='" + marginStyle + "'>");
+            html.AppendHtml("<div class='p-2 rounded' style='max-width:70%; background-color:" + bgColor + "; color:#000; line-height:1.4;'>");
+            html.AppendHtml("<strong>" + WebUtility.HtmlEncode(msg.Username) + "</strong> <small class='text-muted'>(" + msg.Timestamp.ToString("HH:mm") + ")</small>");
+            html.AppendHtml(quotedHtml);
+            html.AppendHtml("<div style='white-space: pre-wrap; font-size:1rem;'>" + currentMsg + "</div>");
+
+            string replyData = WebUtility.HtmlEncode(msg.Message).Replace("'", "&#x27;");
+            html.AppendHtml("<a href='#' class='reply-btn btn btn-link btn-sm p-0 text-decoration-none' data-replyto='" + msg.Id + "' data-replytext='" + replyData + "'>Reply</a>");
+
+
+            html.AppendHtml("</div></div>");
+        }
+
+        return html;
+    }
+}
+@*Refference*@
+@* Start Bootstrap, 2025.Bootstrap Templates & Themes.[online] Available at: https://startbootstrap.com/themes#google_vignette [Accessed 1 September 2025] *@

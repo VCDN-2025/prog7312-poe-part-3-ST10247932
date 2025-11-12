@@ -1,0 +1,14 @@
+﻿@model List<(string u, string v, double w)>
+<h3>MST Result (Suburb connections)</h3>
+<table class="table">
+    <thead><tr><th>From</th><th>To</th><th>Weight</th></tr></thead>
+    <tbody>
+        @foreach (var e in Model)
+        {
+            <tr><td>@e.u</td><td>@e.v</td><td>@e.w</td></tr>
+        }
+    </tbody>
+</table>
+<a asp-action="Index">Back</a>
+@* Reference *@
+@* Start Bootstrap, 2025. Bootstrap Templates & Themes. [online] Available at: https://startbootstrap.com/themes [Accessed 13 October 2025] *@

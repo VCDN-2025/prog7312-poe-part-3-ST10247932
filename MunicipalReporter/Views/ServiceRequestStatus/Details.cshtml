@@ -1,0 +1,89 @@
+﻿@model MunicipalReporter.Models.ServiceRequest
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpCtx
+
+@{
+    var userEmail = HttpCtx.HttpContext?.Session.GetString("Email") ?? HttpCtx.HttpContext?.Session.GetString("Username");
+    bool isAdmin = !string.IsNullOrEmpty(userEmail) && userEmail.Equals("admin@gmail.com", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="card shadow-sm my-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Request Details</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.RequestId</dd>
+
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @if (isAdmin)
+                {
+                    <!-- Admin can update status inline -->
+                    <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.RequestId" />
+<select name="status" class="form-select form-select-sm me-2">
+    @foreach (var s in Enum.GetValues(typeof(MunicipalReporter.Models.RequestStatus)).Cast<MunicipalReporter.Models.RequestStatus>())
+    {
+        string selected = s == Model.Status ? "selected" : "";
+        @:<option value="@s" @selected>@s</option>
+    }
+</select>
+
+                        <button type="submit" class="btn btn-sm btn-success">Update</button>
+                    </form>
+                }
+                else
+                {
+                    <span class="badge
+                        @(Model.Status == MunicipalReporter.Models.RequestStatus.Submitted ? "bg-secondary" :
+                          Model.Status == MunicipalReporter.Models.RequestStatus.InProgress ? "bg-info" :
+                          Model.Status == MunicipalReporter.Models.RequestStatus.Completed ? "bg-success" :
+                          Model.Status == MunicipalReporter.Models.RequestStatus.OnHold ? "bg-warning text-dark" :
+                          "bg-danger")">
+                        @Model.Status
+                    </span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Priority</dt>
+            <dd class="col-sm-9">
+                <span class="fw-bold">
+                    @(Model.Priority <= 2 ? "High" : Model.Priority <= 4 ? "Medium" : "Low")
+                </span>
+                (@Model.Priority)
+            </dd>
+
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime():f</dd>
+
+            <dt class="col-sm-3">Suburb / Location</dt>
+            <dd class="col-sm-9">@Model.Suburb</dd>
+        </dl>
+
+        <a asp-action="Index" class="btn btn-outline-primary mt-3">Back to List</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mt-3">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mt-3">
+        @TempData["Error"]
+    </div>
+}
+@* Reference *@
+@* Start Bootstrap, 2025. Bootstrap Templates & Themes. [online] Available at: https://startbootstrap.com/themes [Accessed 13 October 2025] *@
